@@ -115,6 +115,33 @@ box(W+0.15,W+0.95,0,H,2.58,2.60,M.wall);
 box(W+0.95,W+0.97,0,H,2.60,3.60,M.wall);
 box(W+0.25,W+0.90,0,1.80,2.80,3.45,M.steel);
 
+// ---------- azulejo (backsplash): branco 7,5 x 15 cm, junta desencontrada ----------
+const azTex = (() => {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128; // = 30 x 15 cm
+  const g = c.getContext('2d');
+  g.fillStyle = '#d9d6d0'; g.fillRect(0,0,256,128);                     // junta
+  const tile = (x,y) => { const gr = g.createLinearGradient(x,y,x,y+60);
+    gr.addColorStop(0,'#fbfbf9'); gr.addColorStop(1,'#efeeea'); g.fillStyle = gr; g.fillRect(x+2,y+2,124,60); };
+  tile(0,0); tile(128,0); tile(-64,64); tile(64,64); tile(192,64);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t;
+})();
+function azulejo(face, a0, a1, y0, y1){
+  const w = a1 - a0, h = y1 - y0, t = azTex.clone(); t.needsUpdate = true;
+  t.repeat.set(w / 0.30, h / 0.15);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map:t, roughness:.25 }));
+  if (face === 'fundo') m.position.set((a0+a1)/2, (y0+y1)/2, 0.003);
+  if (face === 'esq')  { m.position.set(0.003, (y0+y1)/2, (a0+a1)/2); m.rotation.y =  Math.PI/2; }
+  if (face === 'dir')  { m.position.set(W-0.003, (y0+y1)/2, (a0+a1)/2); m.rotation.y = -Math.PI/2; }
+  m.receiveShadow = true; scene.add(m);
+}
+// fundo: até aos módulos de cima; debaixo da janela só até ao peitoril
+azulejo('fundo', 0, 1.30, 0.90, 1.45); azulejo('fundo', 1.30, 2.88, 0.90, 1.00); azulejo('fundo', 2.88, W, 0.90, 1.45);
+// direita: atrás do exaustor sobe até 1,60
+azulejo('dir', 0, 0.75, 0.90, 1.45); azulejo('dir', 0.75, 1.65, 0.90, 1.60); azulejo('dir', 1.65, 2.10, 0.90, 1.45);
+// esquerda: canto até 1,45 e debaixo da janela até ao peitoril
+azulejo('esq', 0, 0.36, 0.90, 1.45); azulejo('esq', 0.36, 1.80, 0.90, 1.00);
+
 // ---------- módulos de baixo (0,86 caixa + 4 cm bancada = 90) ----------
 const PL=0.10, TOP=0.86, CT=0.04;
 function baseRun(x0,x1,z0,z1){
