@@ -44,10 +44,10 @@ function veio(base){
 const M = {
   wall:   new THREE.MeshStandardMaterial({ color:0xefe9df, roughness:.95 }),
   floor:  new THREE.MeshStandardMaterial({ color:0xd8cbb4, roughness:.8 }),
-  front:  new THREE.MeshStandardMaterial({ map:veio(0x6b4429), roughness:.55 }),      // nogueira (baixo + colunas)
-  carcass:new THREE.MeshStandardMaterial({ map:veio(0x5c3a23), roughness:.65 }),
-  upperF: new THREE.MeshStandardMaterial({ color:0xebe6dd, roughness:.45 }),          // branco-creme (cima)
-  upperC: new THREE.MeshStandardMaterial({ color:0xe0dad0, roughness:.5 }),
+  front:  new THREE.MeshStandardMaterial({ map:veio(0xa0583a), roughness:.5 }),       // cerejeira (todos os móveis)
+  carcass:new THREE.MeshStandardMaterial({ map:veio(0x8c4a2f), roughness:.6 }),
+  upperF: new THREE.MeshStandardMaterial({ map:veio(0xa0583a), roughness:.5 }),
+  upperC: new THREE.MeshStandardMaterial({ map:veio(0x8c4a2f), roughness:.6 }),
   plinth: new THREE.MeshStandardMaterial({ color:0x1e1b19, roughness:.8 }),
   counter:new THREE.MeshStandardMaterial({ color:0xd8d3cb, roughness:.4 }),
   black:  new THREE.MeshStandardMaterial({ color:0x111111, roughness:.15, metalness:.3 }),
