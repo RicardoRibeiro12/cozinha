@@ -2,262 +2,192 @@
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cozinha 3D</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Medidas da Cozinha</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-  :root { --bg:#f3efe8; --ink:#2b2a27; --panel:rgba(255,255,255,.85); --accent:#7d8f7a; }
-  html,body { margin:0; height:100%; background:var(--bg); font-family:system-ui,Segoe UI,sans-serif; color:var(--ink); overflow:hidden; }
-  #ui { position:fixed; top:16px; left:16px; background:var(--panel); padding:12px 14px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,.12); max-width:calc(100vw - 64px); }
-  #ui h1 { font-size:15px; margin:0 0 8px; }
-  #ui button { font:inherit; font-size:13px; margin:2px 4px 2px 0; padding:5px 10px; border:1px solid #c9c2b6; border-radius:6px; background:#fff; cursor:pointer; }
-  #ui button:hover { border-color:var(--accent); }
-  #ui label { font-size:13px; display:inline-flex; gap:6px; align-items:center; margin-top:6px; }
-  #hint { position:fixed; bottom:12px; left:16px; font-size:12px; opacity:.7; }
+/* Layout: ficha técnica de obra — modelo 3D no topo, planta, depois uma tabela por parede com cotas em cm */
+:root {
+  --bg: #f4f5f1;
+  --surface: #ffffff;
+  --fg: #22261f;
+  --muted: #646b5e;
+  --line: #d9ddd2;
+  --sage: #6f8467;
+  --sage-soft: #e3e9df;
+  --mark: #b5682f;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #171a16; --surface: #20241e; --fg: #e8ebe3; --muted: #9ea695; --line: #343a30;
+  --sage: #9db394; --sage-soft: #2a3227; --mark: #e0985f; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #171a16; --surface: #20241e; --fg: #e8ebe3; --muted: #9ea695; --line: #343a30;
+  --sage: #9db394; --sage-soft: #2a3227; --mark: #e0985f; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 40px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--sage); }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(30px, 5vw, 46px); line-height: 1.05; margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 62ch; margin: 0; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 8px; font-family: var(--font-mono); font-size: 13px; }
+.facts b { font-weight: 500; color: var(--fg); }
+.facts span { color: var(--muted); }
+
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+section { display: grid; gap: 14px; min-width: 0; }
+.sub { color: var(--muted); margin: 0; font-size: 14px; max-width: 70ch; }
+
+#viewer { position: relative; height: min(68vh, 560px); min-height: 340px; border-radius: 10px; overflow: hidden; background: #dfe7ec; border: 1px solid var(--line); }
+#viewer canvas { display: block; }
+#viewer-ui { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; z-index: 2; }
+#viewer-ui button, #viewer-ui label { font: 500 13px var(--font-body); padding: 6px 11px; border-radius: 6px; border: 1px solid rgba(0,0,0,.15); background: rgba(255,255,255,.9); color: #22261f; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+#viewer-ui button:hover { border-color: #6f8467; }
+#viewer-ui button:focus-visible, #viewer-ui label:focus-within { outline: 2px solid #6f8467; outline-offset: 1px; }
+.hint { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin: 0; }
+
+figure { margin: 0; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+figure img { display: block; width: 100%; min-width: 720px; height: auto; }
+figcaption { font-size: 13px; color: var(--muted); padding: 0 2px; }
+
+.walls { display: grid; gap: 28px; }
+.wall { display: grid; gap: 10px; min-width: 0; }
+.wall-head { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.wall-head .len { font-family: var(--font-mono); font-size: 14px; color: var(--sage); }
+.from { font-size: 13px; color: var(--muted); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--font-mono); font-weight: 500; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); background: var(--sage-soft); }
+td.n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.zone td { background: color-mix(in srgb, var(--sage-soft) 55%, transparent); }
+.tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); margin-left: 6px; white-space: nowrap; }
+.tag.est { color: var(--mark); border-color: color-mix(in srgb, var(--mark) 45%, transparent); }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; }
+.card h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.card dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 14px; }
+.card dt { color: var(--muted); }
+.card dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-} }
-</script>
 </head>
 <body>
-<div id="ui">
-  <h1>Cozinha 3D — medidas em cm</h1>
-  <button data-v="frente">Frente</button>
-  <button data-v="esq">Esquerda</button>
-  <button data-v="dir">Direita</button>
-  <button data-v="topo">Topo</button>
-  <br><label><input type="checkbox" id="mesa" checked> Mesa e cadeiras</label>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Projeto de cozinha · medidas em cm</div>
+    <h1>Medidas da Cozinha</h1>
+    <p class="lede">Cozinha em U com colunas altas nas duas pontas. As medidas foram tiradas no local e coincidem com o desenho do CADCraft. Os valores com <span class="tag est">estimado</span> ainda têm de ser confirmados com fita métrica.</p>
+    <div class="facts">
+      <div><span>Fundo</span> <b>400</b></div>
+      <div><span>Esquerda</span> <b>260</b></div>
+      <div><span>Direita</span> <b>270</b></div>
+      <div><span>Pé-direito</span> <b>250</b></div>
+      <div><span>Bancada</span> <b>90 alt. · 60 prof.</b></div>
+    </div>
+  </header>
+
+  <section aria-labelledby="t3d">
+    <h2 id="t3d">Modelo 3D</h2>
+    <div id="viewer">
+      <div id="viewer-ui">
+        <button data-v="frente">Frente</button>
+        <button data-v="esq">Esquerda</button>
+        <button data-v="dir">Direita</button>
+        <button data-v="topo">Topo</button>
+        <label for="mesa"><input type="checkbox" id="mesa" checked> Mesa</label>
+      </div>
+    </div>
+    <p class="hint"><a href="modelo-3d.html">Abrir o 3D em ecrã inteiro</a> · Arrastar para rodar · roda do rato para zoom · botão direito para mover</p>
+  </section>
+
+  <section aria-labelledby="tplanta">
+    <h2 id="tplanta">Planta e alçados</h2>
+    <figure>
+      <img src="planta.png" alt="Planta da cozinha com cotas e alçados das paredes esquerda, de fundo e direita">
+    </figure>
+    <figcaption>Os alçados estão desenhados como se vê de dentro da cozinha. No telemóvel, desliza a imagem para o lado.</figcaption>
+  </section>
+
+  <section aria-labelledby="tparedes">
+    <h2 id="tparedes">Parede a parede</h2>
+    <p class="sub">As posições contam-se sempre a partir do canto da parede de fundo. As zonas de canto ficam escondidas atrás do móvel da parede ao lado.</p>
+    <div class="walls">
+
+      <div class="wall">
+        <div class="wall-head"><h3 style="margin:0;font-size:17px">Parede de fundo</h3><span class="len">400</span><span class="from">do canto esquerdo para o direito</span></div>
+        <div class="tbl"><table>
+          <thead><tr><th>De – a</th><th>Largura</th><th>Em baixo (até 90)</th><th>Em cima (145 – 215)</th></tr></thead>
+          <tbody>
+            <tr class="zone"><td class="n">0 – 60</td><td class="n">60</td><td>Canto, por trás das máquinas</td><td rowspan="2">2 portas: 0 – 65 e 65 – 130</td></tr>
+            <tr><td class="n">60 – 130</td><td class="n">70</td><td>Porta de canto, para mecanismo de canto</td></tr>
+            <tr><td class="n">130 – 288</td><td class="n">158</td><td>2 portas de 79. Lava-loiça ao centro, a 209</td><td>Janela <span class="tag est">100 – 210 estimado</span></td></tr>
+            <tr><td class="n">288 – 340</td><td class="n">52</td><td>Porta de canto, para mecanismo de canto</td><td rowspan="2">2 portas: 288 – 344 e 344 – 400</td></tr>
+            <tr class="zone"><td class="n">340 – 400</td><td class="n">60</td><td>Canto, por trás do móvel da direita</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="wall">
+        <div class="wall-head"><h3 style="margin:0;font-size:17px">Parede esquerda</h3><span class="len">260 até à porta da rua</span><span class="from">do canto do fundo para a porta</span></div>
+        <div class="tbl"><table>
+          <thead><tr><th>De – a</th><th>Largura</th><th>Em baixo / altura total</th><th>Parede</th></tr></thead>
+          <tbody>
+            <tr class="zone"><td class="n">0 – 60</td><td class="n">60</td><td>Canto, bancada contínua</td><td rowspan="3">36 de parede, depois janela de 144 (36 – 180) <span class="tag est">100 – 210 estimado</span></td></tr>
+            <tr><td class="n">60 – 120</td><td class="n">60</td><td>Espaço livre para a máquina de lavar loiça</td></tr>
+            <tr><td class="n">120 – 180</td><td class="n">60</td><td>Espaço livre para a máquina de lavar roupa</td></tr>
+            <tr><td class="n">180 – 256</td><td class="n">76</td><td>Despenseiro do chão a 240. 2 portas de 38, divididas a 140 de altura</td><td>80 de parede entre a janela e a porta</td></tr>
+            <tr><td class="n">256 – 260</td><td class="n">4</td><td>Folga para o aro da porta</td><td></td></tr>
+            <tr class="zone"><td class="n">260 – 345</td><td class="n">85</td><td>Porta da rua <span class="tag est">largura estimada</span></td><td></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="wall">
+        <div class="wall-head"><h3 style="margin:0;font-size:17px">Parede direita</h3><span class="len">270 até à despensa</span><span class="from">do canto do fundo para a despensa</span></div>
+        <div class="tbl"><table>
+          <thead><tr><th>De – a</th><th>Largura</th><th>Em baixo (até 90)</th><th>Em cima</th></tr></thead>
+          <tbody>
+            <tr class="zone"><td class="n">0 – 60</td><td class="n">60</td><td>Canto, por trás do fundo</td><td rowspan="2">2 portas: 0 – 37,5 e 37,5 – 75</td></tr>
+            <tr><td class="n">60 – 80</td><td class="n">20</td><td>Tampo de enchimento</td></tr>
+            <tr><td class="n">80 – 160</td><td class="n">80</td><td>2 gavetas grandes. Placa a gás de 5 bicos com 75 (82,5 – 157,5), centro a 120</td><td>Exaustor de 90 (75 – 165): campânula a 160 – 175, chaminé até ao teto</td></tr>
+            <tr><td class="n">160 – 210</td><td class="n">50</td><td>Porta. 60 de bancada livre ao lado da placa</td><td>Sem móvel, não há espaço</td></tr>
+            <tr><td class="n">210 – 270</td><td class="n">60</td><td colspan="2">Coluna do chão a 240: 4 gavetas pequenas (10 – 85), forno (85 – 145), micro-ondas (150 – 188), porta em cima (190 – 240)</td></tr>
+            <tr class="zone"><td class="n">270 – 350</td><td class="n">80</td><td colspan="2">Porta da despensa, com o frigorífico lá dentro <span class="tag est">largura estimada</span></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="talturas">
+    <h2 id="talturas">Alturas e fundos</h2>
+    <div class="grid2">
+      <div class="card"><h3>Móveis de baixo</h3><dl>
+        <dt>Rodapé</dt><dd>0 – 10</dd><dt>Caixa</dt><dd>10 – 86</dd><dt>Bancada (4 cm)</dt><dd>86 – 90</dd><dt>Fundo</dt><dd>60</dd></dl></div>
+      <div class="card"><h3>Móveis de cima</h3><dl>
+        <dt>Altura</dt><dd>145 – 215</dd><dt>Fundo</dt><dd>35</dd><dt>Acima da bancada</dt><dd>55</dd></dl></div>
+      <div class="card"><h3>Colunas altas</h3><dl>
+        <dt>Altura</dt><dd>0 – 240</dd><dt>Fundo</dt><dd>60</dd><dt>Despenseiro</dt><dd>76 larg.</dd><dt>Forno + micro</dt><dd>60 larg.</dd></dl></div>
+      <div class="card"><h3>Equipamentos</h3><dl>
+        <dt>Placa 5 bicos</dt><dd>75</dd><dt>Exaustor</dt><dd>90</dd><dt>Lava-loiça</dt><dd>80 × 44</dd><dt>Máquinas</dt><dd>60 cada</dd></dl></div>
+    </div>
+  </section>
+
+  <footer>Desenho original: cozinha.dwg (CADCraft). Os 4 cm junto à porta da rua e as larguras das portas são valores a confirmar no local.</footer>
 </div>
-<div id="hint">Arrastar = rodar · Roda = zoom · Botão direito = mover</div>
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// Coordenadas em metros: x = ao longo da parede de fundo (0 = canto esquerdo),
-// z = profundidade a partir da parede de fundo, y = altura.
-const W = 4.00, D = 4.20, H = 2.50;
-
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
-document.body.appendChild(renderer.domElement);
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xdfe7ec);
-
-const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.05, 100);
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-
-// ---------- materiais ----------
-const M = {
-  wall:   new THREE.MeshStandardMaterial({ color:0xefe9df, roughness:.95 }),
-  floor:  new THREE.MeshStandardMaterial({ color:0xd8cbb4, roughness:.8 }),
-  front:  new THREE.MeshStandardMaterial({ color:0x8c9a86, roughness:.6 }),
-  carcass:new THREE.MeshStandardMaterial({ color:0x7b8975, roughness:.7 }),
-  plinth: new THREE.MeshStandardMaterial({ color:0x5f6a5b, roughness:.8 }),
-  counter:new THREE.MeshStandardMaterial({ color:0xece3d3, roughness:.35 }),
-  black:  new THREE.MeshStandardMaterial({ color:0x111111, roughness:.15, metalness:.3 }),
-  steel:  new THREE.MeshStandardMaterial({ color:0xb8bcc0, roughness:.25, metalness:.85 }),
-  frame:  new THREE.MeshStandardMaterial({ color:0xfafafa, roughness:.5 }),
-  glass:  new THREE.MeshStandardMaterial({ color:0xcfe6f5, roughness:.05, transparent:true, opacity:.35 }),
-  wood:   new THREE.MeshStandardMaterial({ color:0xb8895a, roughness:.55 }),
-  chair:  new THREE.MeshStandardMaterial({ color:0xd8cfc2, roughness:.9 }),
-  handle: new THREE.MeshStandardMaterial({ color:0x2a2a2a, roughness:.4, metalness:.6 }),
-  dark:   new THREE.MeshStandardMaterial({ color:0x6b625a, roughness:.9 }),
-  led:    new THREE.MeshBasicMaterial({ color:0xffe2b0 }),
-};
-
-function box(x0,x1,y0,y1,z0,z1,mat,parent=scene){
-  const m = new THREE.Mesh(new THREE.BoxGeometry(x1-x0,y1-y0,z1-z0), mat);
-  m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
-  m.castShadow = m.receiveShadow = true;
-  parent.add(m); return m;
-}
-const G = 0.003; // folga entre frentes
-
-// ---------- chão e paredes ----------
-box(-0.15, W+0.15, -0.02, 0, -0.15, D, M.floor);
-// parede de fundo, janela 130..288, altura 100..210
-box(-0.15, 1.30, 0, H, -0.15, 0, M.wall);
-box(2.88, W+0.15, 0, H, -0.15, 0, M.wall);
-box(1.30, 2.88, 0, 1.00, -0.15, 0, M.wall);
-box(1.30, 2.88, 2.10, H, -0.15, 0, M.wall);
-// parede esquerda: janela 36..180, despenseiro 180..260, porta 260..345
-box(-0.15, 0, 0, H, 0, 0.36, M.wall);
-box(-0.15, 0, 0, 1.00, 0.36, 1.80, M.wall);
-box(-0.15, 0, 2.10, H, 0.36, 1.80, M.wall);
-box(-0.15, 0, 0, H, 1.80, 2.60, M.wall);
-box(-0.15, 0, 2.10, H, 2.60, 3.45, M.wall);
-box(-0.15, 0, 0, H, 3.45, D, M.wall);
-// parede direita: porta despensa 270..350
-box(W, W+0.15, 0, H, 0, 2.70, M.wall);
-box(W, W+0.15, 2.10, H, 2.70, 3.50, M.wall);
-box(W, W+0.15, 0, H, 3.50, D, M.wall);
-
-// janelas
-function janelaFundo(){
-  box(1.30,2.88,1.00,1.03,-0.15,0.02,M.frame); // peitoril
-  box(1.30,2.88,1.00,2.10,-0.08,-0.07,M.glass);
-  for (const x of [1.30,2.06,2.88-0.04]) box(x,x+0.04,1.00,2.10,-0.09,-0.05,M.frame);
-  box(1.30,2.88,1.00,1.04,-0.09,-0.05,M.frame); box(1.30,2.88,2.06,2.10,-0.09,-0.05,M.frame);
-}
-function janelaEsq(){
-  box(-0.15,0.02,1.00,1.03,0.36,1.80,M.frame);
-  box(-0.08,-0.07,1.00,2.10,0.36,1.80,M.glass);
-  for (const z of [0.36,1.06,1.80-0.04]) box(-0.09,-0.05,1.00,2.10,z,z+0.04,M.frame);
-  box(-0.09,-0.05,1.00,1.04,0.36,1.80,M.frame); box(-0.09,-0.05,2.06,2.10,0.36,1.80,M.frame);
-}
-janelaFundo(); janelaEsq();
-
-// porta da rua (branca com 4 vidros)
-box(-0.06,-0.02,0,2.10,2.60,3.45,M.frame);
-for (let i=0;i<4;i++){ const y=0.35+i*0.42; box(-0.015,-0.01,y,y+0.28,2.95,3.12,M.glass); }
-box(-0.01,0.03,1.0,1.03,3.32,3.42,M.handle);
-
-// despensa (atrás da porta direita) com frigorífico
-box(W+0.15,W+0.95,-0.02,0,2.60,3.60,M.dark);
-box(W+0.15,W+0.95,0,H,3.60,3.62,M.wall);
-box(W+0.15,W+0.95,0,H,2.58,2.60,M.wall);
-box(W+0.95,W+0.97,0,H,2.60,3.60,M.wall);
-box(W+0.25,W+0.90,0,1.80,2.80,3.45,M.steel);
-
-// ---------- módulos de baixo (0,86 caixa + 4 cm bancada = 90) ----------
-const PL=0.10, TOP=0.86, CT=0.04;
-function baseRun(x0,x1,z0,z1){
-  box(x0,x1,PL,TOP,z0,z1,M.carcass);
-}
-baseRun(0,W,0,0.60);             // fundo
-// esquerda (debaixo da janela): espaços livres para as máquinas
-baseRun(W-0.60,W,0.60,2.10);     // direita
-// rodapés recuados
-box(0,W,0,PL,0,0.55,M.plinth);box(W-0.55,W,0,PL,0.55,2.10,M.plinth);
-// bancadas (com aba de 2 cm)
-box(0,W,TOP,TOP+CT,0,0.62,M.counter);
-box(0,0.62,TOP,TOP+CT,0.62,1.80,M.counter);
-box(W-0.62,W,TOP,TOP+CT,0.62,2.10,M.counter);
-
-// frentes: face +z (fundo), +x (esquerda), -x (direita)
-function frontZ(x0,x1,y0,y1,z){ return box(x0+G,x1-G,y0+G,y1-G,z,z+0.02,M.front); }
-function frontX(z0,z1,y0,y1,x,dir){ return dir>0 ? box(x,x+0.02,y0+G,y1-G,z0+G,z1-G,M.front) : box(x-0.02,x,y0+G,y1-G,z0+G,z1-G,M.front); }
-function gavetas(fn,a,b,...rest){ const h=(TOP-PL)/3; for(let i=0;i<3;i++) fn(a,b,PL+i*h,PL+(i+1)*h,...rest); }
-// fundo (de 60 a 340 cm; os cantos ficam escondidos)
-gavetas(frontZ,0.60,1.30,0.60);
-frontZ(1.30,1.69,PL,TOP,0.60);
-frontZ(1.69,2.09,PL,TOP,0.60); frontZ(2.09,2.49,PL,TOP,0.60); // lava-loiça
-frontZ(2.49,2.88,PL,TOP,0.60);
-gavetas(frontZ,2.88,3.40,0.60);
-// esquerda
-// máquina lavar loiça (60..120) e máquina lavar roupa (120..180)
-const white = new THREE.MeshStandardMaterial({ color:0xf4f4f2, roughness:.4 });
-box(0.02,0.58,0,0.85,0.61,1.19,white);
-box(0.58,0.60,0.12,0.84,0.62,1.18,M.steel);
-box(0.58,0.60,0.74,0.84,0.62,1.18,M.black);
-box(0.02,0.58,0,0.85,1.21,1.79,white);
-const porta = new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,0.03,40), M.black);
-porta.rotation.z = Math.PI/2; porta.position.set(0.595,0.42,1.50); scene.add(porta);
-const aro = new THREE.Mesh(new THREE.TorusGeometry(0.17,0.02,12,40), M.steel);
-aro.rotation.y = Math.PI/2; aro.position.set(0.605,0.42,1.50); scene.add(aro);
-box(0.58,0.60,0.74,0.84,1.22,1.78,M.steel);
-// direita
-frontX(0.60,0.90,PL,TOP,W-0.60,-1);
-gavetas(frontX,0.90,1.50,W-0.60,-1);
-frontX(1.50,2.10,PL,TOP,W-0.60,-1);
-
-// ---------- colunas altas (do chão a 2,40) ----------
-// despenseiro esquerdo 180..260
-box(0,0.60,0,2.40,1.80,2.60,M.carcass);
-box(0,0.55,0,PL,1.80,2.60,M.plinth);
-for (const [z0,z1] of [[1.80,2.20],[2.20,2.60]]) { frontX(z0,z1,PL,1.30,0.60,1); frontX(z0,z1,1.30,2.40,0.60,1); }
-box(0.62,0.64,0.95,1.65,2.19,2.21,M.handle);
-// coluna forno + micro 210..270
-box(W-0.60,W,0,2.40,2.10,2.70,M.carcass);
-box(W-0.55,W,0,PL,2.10,2.70,M.plinth);
-frontX(2.10,2.70,PL,0.475,W-0.60,-1); frontX(2.10,2.70,0.475,0.85,W-0.60,-1);
-box(W-0.62,W-0.60,0.85,1.45,2.12,2.68,M.black);   // forno
-box(W-0.63,W-0.62,1.36,1.38,2.16,2.64,M.steel);
-frontX(2.10,2.70,1.45,1.50,W-0.60,-1);
-box(W-0.62,W-0.60,1.50,1.88,2.12,2.68,M.black);   // micro-ondas
-frontX(2.10,2.70,1.88,2.40,W-0.60,-1);
-
-// ---------- módulos de cima 145..215, 35 cm ----------
-const UY0=1.45, UY1=2.15;
-box(0,1.30,UY0,UY1,0,0.35,M.carcass);
-frontZ(0,0.65,UY0,UY1,0.35); frontZ(0.65,1.30,UY0,UY1,0.35);
-box(2.88,W,UY0,UY1,0,0.35,M.carcass);
-frontZ(2.88,3.44,UY0,UY1,0.35); frontZ(3.44,W-0.35,UY0,UY1,0.35);
-box(W-0.35,W,UY0,UY1,0.35,0.90,M.carcass); frontX(0.35,0.90,UY0,UY1,W-0.35,-1);
-box(W-0.35,W,UY0,UY1,1.50,2.10,M.carcass); frontX(1.50,2.10,UY0,UY1,W-0.35,-1);
-// LED debaixo dos módulos
-box(0.02,1.28,UY0-0.006,UY0,0.28,0.31,M.led);
-box(2.90,W-0.02,UY0-0.006,UY0,0.28,0.31,M.led);
-for (const [x,z] of [[0.65,0.4],[3.4,0.4],[3.65,1.2]]) {
-  const l = new THREE.PointLight(0xffd9a0, 0.6, 1.6); l.position.set(x,UY0-0.05,z); scene.add(l);
-}
-
-// ---------- equipamentos ----------
-// lava-loiça (centro da janela: 209 cm)
-box(1.69,2.49,TOP+CT,TOP+CT+0.004,0.08,0.52,M.steel);
-box(1.73,2.07,TOP-0.12,TOP+CT+0.005,0.12,0.48,M.black).material = M.steel.clone();
-box(2.11,2.45,TOP-0.12,TOP+CT+0.005,0.12,0.48,M.steel);
-box(2.08,2.10,TOP+CT,TOP+CT+0.30,0.04,0.06,M.handle);
-box(2.08,2.10,TOP+CT+0.28,TOP+CT+0.30,0.06,0.20,M.handle);
-// placa (centro a 120 cm do canto)
-box(W-0.55,W-0.05,TOP+CT,TOP+CT+0.006,0.90,1.50,M.black);
-// exaustor inclinado + chaminé
-const hood = new THREE.Mesh(new THREE.BoxGeometry(0.03,0.45,0.60), M.black);
-hood.position.set(W-0.20,1.78,1.20); hood.rotation.z = -0.55; hood.castShadow = true; scene.add(hood);
-box(W-0.30,W,1.95,H,1.05,1.35,M.black);
-
-// ---------- mesa e cadeiras ----------
-const mesa = new THREE.Group(); scene.add(mesa);
-box(1.40,2.60,0.72,0.76,2.40,3.20,M.wood,mesa);
-for (const [x,z] of [[1.45,2.45],[2.55,2.45],[1.45,3.15],[2.55,3.15]]) box(x-0.03,x+0.03,0,0.72,z-0.03,z+0.03,M.wood,mesa);
-function cadeira(cx,cz,dir){
-  box(cx-0.22,cx+0.22,0.44,0.50,cz-0.22,cz+0.22,M.chair,mesa);
-  for (const [dx,dz] of [[-0.19,-0.19],[0.19,-0.19],[-0.19,0.19],[0.19,0.19]]) box(cx+dx-0.015,cx+dx+0.015,0,0.44,cz+dz-0.015,cz+dz+0.015,M.wood,mesa);
-  const bz = cz + dir*0.22; box(cx-0.22,cx+0.22,0.50,0.95,bz-0.03,bz+0.03,M.chair,mesa);
-}
-cadeira(1.70,2.25,-1); cadeira(2.30,2.25,-1); cadeira(1.70,3.35,1); cadeira(2.30,3.35,1);
-// candeeiros suspensos
-for (const x of [1.70,2.30]) {
-  box(x-0.004,x+0.004,1.85,H,2.79,2.81,M.handle,mesa);
-  const s = new THREE.Mesh(new THREE.SphereGeometry(0.17,24,12,0,Math.PI*2,0,Math.PI/2), new THREE.MeshStandardMaterial({color:0xf2ede4, side:THREE.DoubleSide}));
-  s.position.set(x,1.70,2.80); mesa.add(s);
-  const pl = new THREE.PointLight(0xffd9a0, 1.2, 3); pl.position.set(x,1.62,2.80); mesa.add(pl);
-}
-document.getElementById('mesa').onchange = e => mesa.visible = e.target.checked;
-
-// ---------- luz ----------
-scene.add(new THREE.HemisphereLight(0xffffff, 0xcbbfae, 1.3));
-const sun = new THREE.DirectionalLight(0xfff3e0, 1.6);
-sun.position.set(2.5, 6, 5); sun.castShadow = true;
-sun.shadow.mapSize.set(2048,2048);
-Object.assign(sun.shadow.camera, { left:-4, right:4, top:4, bottom:-4, near:1, far:15 });
-scene.add(sun);
-const amb = new THREE.AmbientLight(0xffffff, 0.35); scene.add(amb);
-
-// ---------- vistas ----------
-const T = new THREE.Vector3(2.0, 1.1, 1.0);
-const views = {
-  frente: [2.0, 1.75, 5.4],
-  esq:    [3.6, 1.7, 3.9],
-  dir:    [0.4, 1.7, 3.9],
-  topo:   [2.0, 7.0, 2.2],
-};
-function setView(k){ camera.position.set(...views[k]); controls.target.copy(k==='topo' ? new THREE.Vector3(2,0,2.0) : T); controls.update(); }
-document.querySelectorAll('[data-v]').forEach(b => b.onclick = () => setView(b.dataset.v));
-setView('frente');
-
-addEventListener('resize', () => { camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
-renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
-</script>
+<script type="module" src="modelo3d.js"></script>
 </body>
 </html>
