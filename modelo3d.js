@@ -26,13 +26,30 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 // ---------- materiais ----------
+// textura de madeira gerada (veio vertical), sem ficheiros externos
+function veio(base){
+  const c = document.createElement('canvas'); c.width = 256; c.height = 512;
+  const g = c.getContext('2d'); const col = new THREE.Color(base);
+  g.fillStyle = '#' + col.getHexString(); g.fillRect(0,0,256,512);
+  for (let i=0;i<140;i++){
+    const x = Math.random()*256, w = 0.5+Math.random()*2.5, a = 0.04+Math.random()*0.12;
+    const light = Math.random() < 0.45;
+    g.strokeStyle = light ? `rgba(255,220,180,${a})` : `rgba(20,8,0,${a})`; g.lineWidth = w;
+    g.beginPath(); let xx = x; g.moveTo(xx,0);
+    for (let y=0;y<=512;y+=16){ xx += (Math.random()-0.5)*2.2; g.lineTo(xx,y); }
+    g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
 const M = {
   wall:   new THREE.MeshStandardMaterial({ color:0xefe9df, roughness:.95 }),
   floor:  new THREE.MeshStandardMaterial({ color:0xd8cbb4, roughness:.8 }),
-  front:  new THREE.MeshStandardMaterial({ color:0x8c9a86, roughness:.6 }),
-  carcass:new THREE.MeshStandardMaterial({ color:0x7b8975, roughness:.7 }),
-  plinth: new THREE.MeshStandardMaterial({ color:0x5f6a5b, roughness:.8 }),
-  counter:new THREE.MeshStandardMaterial({ color:0xece3d3, roughness:.35 }),
+  front:  new THREE.MeshStandardMaterial({ map:veio(0x6b4429), roughness:.55 }),      // nogueira (baixo + colunas)
+  carcass:new THREE.MeshStandardMaterial({ map:veio(0x5c3a23), roughness:.65 }),
+  upperF: new THREE.MeshStandardMaterial({ color:0xebe6dd, roughness:.45 }),          // branco-creme (cima)
+  upperC: new THREE.MeshStandardMaterial({ color:0xe0dad0, roughness:.5 }),
+  plinth: new THREE.MeshStandardMaterial({ color:0x1e1b19, roughness:.8 }),
+  counter:new THREE.MeshStandardMaterial({ color:0xd8d3cb, roughness:.4 }),
   black:  new THREE.MeshStandardMaterial({ color:0x111111, roughness:.15, metalness:.3 }),
   steel:  new THREE.MeshStandardMaterial({ color:0xb8bcc0, roughness:.35, metalness:.25 }),
   frame:  new THREE.MeshStandardMaterial({ color:0xfafafa, roughness:.5 }),
@@ -114,8 +131,9 @@ box(0,0.62,TOP,TOP+CT,0.62,1.80,M.counter);
 box(W-0.62,W,TOP,TOP+CT,0.62,2.10,M.counter);
 
 // frentes: face +z (fundo), +x (esquerda), -x (direita)
-function frontZ(x0,x1,y0,y1,z){ return box(x0+G,x1-G,y0+G,y1-G,z,z+0.02,M.front); }
-function frontX(z0,z1,y0,y1,x,dir){ return dir>0 ? box(x,x+0.02,y0+G,y1-G,z0+G,z1-G,M.front) : box(x-0.02,x,y0+G,y1-G,z0+G,z1-G,M.front); }
+let FM = M.front; // material das frentes: nogueira em baixo/colunas, branco em cima
+function frontZ(x0,x1,y0,y1,z){ return box(x0+G,x1-G,y0+G,y1-G,z,z+0.02,FM); }
+function frontX(z0,z1,y0,y1,x,dir){ return dir>0 ? box(x,x+0.02,y0+G,y1-G,z0+G,z1-G,FM) : box(x-0.02,x,y0+G,y1-G,z0+G,z1-G,FM); }
 function gavetas(fn,a,b,...rest){ const h=(TOP-PL)/3; for(let i=0;i<3;i++) fn(a,b,PL+i*h,PL+(i+1)*h,...rest); }
 // fundo (de 60 a 340 cm; os cantos ficam escondidos)
 // = alçado da parede de fundo: 60|130|209|288|340 (60-130 e 288-340 = portas de canto)
@@ -160,12 +178,13 @@ frontX(2.10,2.70,1.90,2.40,W-0.60,-1);
 
 // ---------- módulos de cima 145..215, 35 cm ----------
 const UY0=1.45, UY1=2.15;
-box(0,1.30,UY0,UY1,0,0.35,M.carcass);
+FM = M.upperF;
+box(0,1.30,UY0,UY1,0,0.35,M.upperC);
 frontZ(0,0.65,UY0,UY1,0.35); frontZ(0.65,1.30,UY0,UY1,0.35);
-box(2.88,W,UY0,UY1,0,0.35,M.carcass);
+box(2.88,W,UY0,UY1,0,0.35,M.upperC);
 frontZ(2.88,3.44,UY0,UY1,0.35); frontZ(3.44,W,UY0,UY1,0.35);
 // parede direita: 0-45 | 45-90 (o canto 0-35 é partilhado com o módulo do fundo)
-box(W-0.35,W,UY0,UY1,0.35,0.75,M.carcass);
+box(W-0.35,W,UY0,UY1,0.35,0.75,M.upperC);
 frontX(0.35,0.55,UY0,UY1,W-0.35,-1); frontX(0.55,0.75,UY0,UY1,W-0.35,-1);
 // entre o exaustor e a coluna do forno: sem módulo de cima (não há espaço)
 // LED debaixo dos módulos
